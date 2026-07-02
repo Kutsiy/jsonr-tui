@@ -1,0 +1,36 @@
+{
+  "id": "usr_7f3a91",
+  "username": "shadow_penguin",
+  "email": "shadow.penguin@example.com",
+  "isActive": true,
+  "role": "developer",
+  "profile": {
+    "firstName": "Alex",
+    "lastName": "Morgan",
+    "age": 24,
+    "country": "Ukraine",
+    "skills": ["TypeScript", "NestJS", "PostgreSQL", "GraphQL"]
+  },
+  "settings": {
+    "theme": "dark",
+    "language": "en",
+    "notifications": {
+      "email": true,
+      "push": false,
+      "weeklySummary": true
+    }
+  },
+  "projects": [
+    {
+      "name": "Access Control API",
+      "status": "in_progress",
+      "progress": 68
+    },
+    {
+      "name": "Medical Booking Platform",
+      "status": "planned",
+      "progress": 0
+    }
+  ],
+  "createdAt": "2026-07-02T14:22:10.000Z"
+}
