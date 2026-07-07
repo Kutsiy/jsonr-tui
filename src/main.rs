@@ -1,8 +1,9 @@
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
+use ratatui::layout::{self, Alignment, Constraint, Direction, Flex, Layout};
 use ratatui::symbols::border;
 // use crossterm::style::Stylize;
 use ratatui::text::{Line, Text, ToText};
-use ratatui::style::Stylize;
+use ratatui::style::{Color, Style, Stylize};
 use ratatui::widgets::{Block, Paragraph, Widget};
 use ratatui::{DefaultTerminal, Frame, Terminal};
 use serde_json::json;
@@ -28,7 +29,9 @@ impl App {
     }
 
     fn draw(&self, frame: &mut Frame) {
-        frame.render_widget(self, frame.area());
+        let layout = Layout::default().direction(Direction::Vertical).constraints([Constraint::Percentage(100)]).margin(1).split(frame.area());
+
+        frame.render_widget(self, layout[0]);
     }
 
     fn handle_events(&mut self) -> io::Result<()> {
@@ -42,45 +45,51 @@ impl App {
         Ok(())
     }
 
-    fn render_json(&self) -> Block<'static> {
-        Block::bordered().title(Line::from(self.json_text.to_string())).border_set(border::EMPTY)
-    }
-
     fn handle_key_events(&mut self, key_event: KeyEvent) {
         match key_event.code {
             KeyCode::Char('q') => self.exit = true,
             _ => {}
         }
     }
+
 }
 
 impl Widget for &App {
     fn render(self, area: ratatui::prelude::Rect, buf: &mut ratatui::prelude::Buffer) {
-        let title = Line::from(" JSON reader app ".bold());
-        let bottom_title = Line::from(" Press 'Q' to exit ".bold());
-        let inner_block = self.render_json();
-        let outer_block = Block::bordered()
-            .title(title.centered())
-            .title_bottom(bottom_title.centered())
-            .border_set(border::THICK);
+        let title_menu = Line::from(" Menu ".bold());
+        let title_main = Line::from(" JSON reader app ".bold());
 
-        let outer_area = outer_block.inner(area);
+        let text_main = Line::from(" < Press Q to leave > ").centered();
 
-        outer_block.render(area, buf);
+        let block_menu = Block::bordered()
+            .title(title_menu.centered())
+            .border_set(border::THICK).border_style(Style::default().fg(Color::Blue));
 
-        Paragraph::new("Title").block(inner_block).render(outer_area, buf);
+        let block_main = Block::bordered()
+            .title(title_main.centered())    
+            .title_bottom(text_main)
+            .border_set(border::THICK).border_style(Style::default().fg(Color::Blue));
 
+        let layout = Layout::default().direction(Direction::Horizontal).constraints([Constraint::Length(35), Constraint::Percentage(100)]).split(area);
+
+
+        Paragraph::new(vec![
+            "text".into(),
+            "text 2".into()
+        ]).block(block_menu).alignment(Alignment::Center).render(layout[0], buf);
+        
+        Paragraph::new("Text2").block(block_main).render(layout[1], buf);
     }
     
 }
 
 fn main() -> std::io::Result<()> {
-    let path = Path::new("src/some.json");
-    let file = File::open(path)?;
-    let file_buff = BufReader::new(file);
-    let json_data: serde_json::Value = serde_json::from_reader(file_buff)?;
+    // let path = Path::new("src/some.json");
+    // let file = File::open(path)?;
+    // let file_buff = BufReader::new(file);
+    // let json_data: serde_json::Value = serde_json::from_reader(file_buff)?;
 
-    let mut app = App {exit: false, json_text: json_data};
+    let mut app = App {exit: false, ..Default::default()};
 
     ratatui::run(|terminal| app.run(terminal))
 }
