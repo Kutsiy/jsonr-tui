@@ -2,9 +2,9 @@ use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
 use ratatui::layout::{self, Alignment, Constraint, Direction, Flex, Layout};
 use ratatui::symbols::border;
 // use crossterm::style::Stylize;
-use ratatui::text::{Line, Text, ToText};
+use ratatui::text::{Line, Span, Text, ToText};
 use ratatui::style::{Color, Style, Stylize};
-use ratatui::widgets::{Block, Paragraph, Widget};
+use ratatui::widgets::{Block, List, ListItem, ListState, Paragraph, Widget};
 use ratatui::{DefaultTerminal, Frame, Terminal};
 use serde_json::json;
 use std::fs::File;
@@ -12,10 +12,16 @@ use std::io::{self, BufReader};
 use std::error::Error;
 use std::path::Path;
 
+struct MenuItem {
+    name: String
+}
+
 #[derive(Default)]
 struct App {
     exit: bool,
-    json_text: serde_json::Value
+    json_text: serde_json::Value,
+    menu: Vec<MenuItem>,
+    menu_index: ListState
 }
 
 impl App {
@@ -48,6 +54,10 @@ impl App {
     fn handle_key_events(&mut self, key_event: KeyEvent) {
         match key_event.code {
             KeyCode::Char('q') => self.exit = true,
+            KeyCode::Up => {
+             
+            },
+
             _ => {}
         }
     }
@@ -59,25 +69,25 @@ impl Widget for &App {
         let title_menu = Line::from(" Menu ".bold());
         let title_main = Line::from(" JSON reader app ".bold());
 
-        let text_main = Line::from(" < Press Q to leave > ").centered();
+        let controls_menu = Line::from(" < Press Up/Down arrows to move > ");
+        let controls_main = Line::from(" < Press Q to leave > ").centered();
 
         let block_menu = Block::bordered()
             .title(title_menu.centered())
+            .title_bottom(controls_menu)
             .border_set(border::THICK).border_style(Style::default().fg(Color::Blue));
 
         let block_main = Block::bordered()
             .title(title_main.centered())    
-            .title_bottom(text_main)
+            .title_bottom(controls_main)
             .border_set(border::THICK).border_style(Style::default().fg(Color::Blue));
 
-        let layout = Layout::default().direction(Direction::Horizontal).constraints([Constraint::Length(35), Constraint::Percentage(100)]).split(area);
+        let layout = Layout::default().direction(Direction::Horizontal).constraints([Constraint::Length(40), Constraint::Percentage(100)]).split(area);
 
+        let menu = List::new(self.menu.iter().map(|item| { ListItem::from(Line::from(item.name.as_str()).centered()) })).block(block_menu);
 
-        Paragraph::new(vec![
-            "text".into(),
-            "text 2".into()
-        ]).block(block_menu).alignment(Alignment::Center).render(layout[0], buf);
-        
+        menu.render(layout[0], buf);
+    
         Paragraph::new("Text2").block(block_main).render(layout[1], buf);
     }
     
@@ -89,7 +99,7 @@ fn main() -> std::io::Result<()> {
     // let file_buff = BufReader::new(file);
     // let json_data: serde_json::Value = serde_json::from_reader(file_buff)?;
 
-    let mut app = App {exit: false, ..Default::default()};
+    let mut app = App {exit: false, menu: vec![MenuItem{name: String::from("Create")}, MenuItem{name: String::from("Update")} ], ..Default::default()};
 
     ratatui::run(|terminal| app.run(terminal))
 }
